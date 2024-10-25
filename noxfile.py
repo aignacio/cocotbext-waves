@@ -25,7 +25,8 @@ def run(session):
         "cocotb>=1.8.0",
         "cocotbext-ahb>=0.4.4",
     )
-    session.install("-e", ".")
+    #session.install("-e", ".")
+    session.install(".")
     session.run(
         "pytest",
         "--cov=cocotbext",

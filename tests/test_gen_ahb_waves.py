@@ -14,6 +14,7 @@ from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
 from cocotbext.ahb import AHBBus, AHBMaster, AHBSlave
 from cocotb.runner import get_runner
+from cocotbext.waves import waveform
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -32,7 +33,24 @@ async def setup_dut(dut, cycles):
 
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
-    N = 10
+    N = 1
+
+    waves = waveform(clk=dut.hclk, name="ahb_test", debug=True)
+    waves.add_signal(
+        [
+            dut.hsel,
+            dut.haddr,
+            dut.hburst,
+            dut.hsize,
+            dut.htrans,
+            dut.hwdata,
+            dut.hwrite,
+            dut.hready_in,
+            dut.hrdata,
+            dut.hready,
+            dut.hresp,
+        ]
+    )
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
@@ -48,6 +66,8 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     resp = await ahb_master.write(address, value, pip=pip_mode, verbose=True)
     resp = await ahb_master.read(address, pip=pip_mode, verbose=True)
 
+    waves.save()
+
 
 def test_gen_ahb_waves():
     """
@@ -57,9 +77,7 @@ def test_gen_ahb_waves():
     """
     test_name = os.path.splitext(os.path.basename(__file__))[0]
 
-    SIM_BUILD = os.path.join(
-        cfg.TESTS_DIR, f"../run_dir/{test_name}_{cfg.SIMULATOR}"
-    )
+    SIM_BUILD = os.path.join(cfg.TESTS_DIR, f"../run_dir/{test_name}_{cfg.SIMULATOR}")
 
     runner = get_runner(cfg.SIMULATOR)
     runner.build(
@@ -72,9 +90,9 @@ def test_gen_ahb_waves():
     )
 
     runner.test(
-            hdl_toplevel=cfg.TOPLEVEL,
-            timescale=cfg.TIMESCALE,
-            test_module=test_name,
-            waves=True,
-            test_dir=SIM_BUILD,
+        hdl_toplevel=cfg.TOPLEVEL,
+        timescale=cfg.TIMESCALE,
+        test_module=test_name,
+        waves=True,
+        test_dir=SIM_BUILD,
     )
