@@ -1,3 +1,5 @@
+[![Lint > Tests > Publish](https://github.com/aignacio/cocotbext-waves/actions/workflows/run.yaml/badge.svg)](https://github.com/aignacio/cocotbext-waves/actions/workflows/run.yaml)
+
 # Cocotb Waves
 
 ## Table of Contents
