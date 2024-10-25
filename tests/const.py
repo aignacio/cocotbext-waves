@@ -22,7 +22,7 @@ class cfg:
     EXTRA_ENV = {}
     EXTRA_ENV["COCOTB_HDL_TIMEPRECISION"] = os.getenv("TIMEPREC")
     EXTRA_ENV["COCOTB_HDL_TIMEUNIT"] = os.getenv("TIMEUNIT")
-    TIMESCALE = (os.getenv("TIMEUNIT"),os.getenv("TIMEPREC"))
+    TIMESCALE = (os.getenv("TIMEUNIT"), os.getenv("TIMEPREC"))
 
     if SIMULATOR == "verilator":
         EXTRA_ARGS = [

@@ -53,7 +53,7 @@ async def setup_dut(dut, cycles):
 async def run_test(dut, bp_fn=None, pip_mode=False):
     N = 10
 
-    if bp_fn == None:
+    if bp_fn is None:
         bp_name = "no_bp_default"
     elif bp_fn.__name__ == "slave_back_pressure_generator":
         bp_name = "w_bp"
@@ -61,7 +61,9 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         bp_name = "no_bp"
     pip_name = "w_pip" if pip_mode else "wo_pip"
 
-    waves = waveform(clk=dut.hclk, name="ahb_test_"+bp_name+"_"+pip_name, debug=True)
+    waves = waveform(
+        clk=dut.hclk, name="ahb_test_" + bp_name + "_" + pip_name, debug=True
+    )
     waves.add_signal(
         [
             dut.hsel,
@@ -89,10 +91,10 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     value = [rnd_val(32) for _ in range(N)]
     size = [random.choice([1, 2, 4]) for _ in range(N)]
 
-    resp = await ahb_master.write(address, value, pip=pip_mode, verbose=True)
-    resp = await ahb_master.read(address, pip=pip_mode, verbose=True)
-
+    resp = await ahb_master.write(address, value, size, pip=pip_mode, verbose=True)
+    resp = await ahb_master.read(address, size, pip=pip_mode, verbose=True)
     waves.save()
+    type(resp)
     del waves
 
 
