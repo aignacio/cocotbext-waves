@@ -15,6 +15,24 @@ from cocotb.clock import Clock
 from cocotbext.ahb import AHBBus, AHBMaster, AHBSlave
 from cocotb.runner import get_runner
 from cocotbext.waves import waveform
+from cocotb.regression import TestFactory
+
+
+def pick_random_value(input_list):
+    if input_list:
+        return random.choice(input_list)
+    else:
+        return None  # Return None if the list is empty
+
+
+def slave_back_pressure_generator():
+    while True:
+        yield pick_random_value([False, True])
+
+
+def slave_no_back_pressure_generator():
+    while True:
+        yield True
 
 
 def rnd_val(bit: int = 0, zero: bool = True):
@@ -33,9 +51,17 @@ async def setup_dut(dut, cycles):
 
 @cocotb.test()
 async def run_test(dut, bp_fn=None, pip_mode=False):
-    N = 1
+    N = 10
 
-    waves = waveform(clk=dut.hclk, name="ahb_test", debug=True)
+    if bp_fn == None:
+        bp_name = "no_bp_default"
+    elif bp_fn.__name__ == "slave_back_pressure_generator":
+        bp_name = "w_bp"
+    elif bp_fn.__name__ == "slave_no_back_pressure_generator":
+        bp_name = "no_bp"
+    pip_name = "w_pip" if pip_mode else "wo_pip"
+
+    waves = waveform(clk=dut.hclk, name="ahb_test_"+bp_name+"_"+pip_name, debug=True)
     waves.add_signal(
         [
             dut.hsel,
@@ -67,6 +93,7 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
     resp = await ahb_master.read(address, pip=pip_mode, verbose=True)
 
     waves.save()
+    del waves
 
 
 def test_gen_ahb_waves():
@@ -96,3 +123,12 @@ def test_gen_ahb_waves():
         waves=True,
         test_dir=SIM_BUILD,
     )
+
+
+if cocotb.SIM_NAME:
+    factory = TestFactory(run_test)
+    factory.add_option(
+        "bp_fn", [slave_back_pressure_generator(), slave_no_back_pressure_generator()]
+    )
+    factory.add_option("pip_mode", [False, True])
+    factory.generate_tests()

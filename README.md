@@ -6,7 +6,7 @@
 
 ## <a name="intro"></a> Introduction
 
-This repository contains waves for [cocotb](https://github.com/cocotb/cocotb).
+This repository contains wavedrom svg generator for [cocotb](https://github.com/cocotb/cocotb) sims.
 
 ## <a name="install"></a> Installation
 

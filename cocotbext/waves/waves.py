@@ -16,7 +16,12 @@ from cocotb.triggers import RisingEdge, FallingEdge
 
 class waveform:
     def __init__(
-        self, clk, name, hscale: int = 2, is_posedge: bool = True, debug: bool = False
+        self,
+        clk,
+        name,
+        hscale: int = 2,
+        is_posedge: bool = True,
+        debug: bool = False,
     ) -> None:
         self.handles = []  # Stores [handle, last_value, color]
         self.waves = {}
@@ -30,7 +35,7 @@ class waveform:
         self.name = name
 
         self.waves["signal"].append({"name": clk._name, "wave": ""})
-        cocotb.start_soon(self._monitor())
+        self.mon = cocotb.start_soon(self._monitor())
 
     def add_signal(self, sig):
         if not isinstance(sig, list):
@@ -101,10 +106,11 @@ class waveform:
                             else:
                                 entry["wave"] += "x"
                         else:
-                            entry["wave"] += str(handle[0].value)
-
                             if handle[0].__len__() > 1:
                                 entry["data"] += str(hex(handle[0].value)) + " "
+                                entry["wave"] += self.handles[index][2]
+                            else:
+                                entry["wave"] += str(handle[0].value)
                     elif handle[0].value == handle[1]:
                         entry["wave"] += "."
                     else:
@@ -123,7 +129,15 @@ class waveform:
                                 entry["wave"] += str(handle[0].value)
 
     def save(self):
-        self.waves["config"] = { "hscale" : self.hscale }
+        self.mon.kill()
+        # Format each name entry
+        for handle in self.handles:
+            for entry in self.waves["signal"]:
+                if entry["name"] == handle[0]._name:
+                    if handle[0].__len__() > 1:
+                        entry["name"] += "[" + str(handle[0].__len__() - 1) + ":0]"
+
+        self.waves["config"] = {"hscale": self.hscale}
         if self.debug:
             print("[Waves - Debug] Printing JSON Wavedrom")
             print(json.dumps(self.waves))
