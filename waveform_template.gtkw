@@ -1,0 +1,77 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Fri Oct 25 11:33:16 2024
+[*]
+[dumpfile] "run_dir/test_gen_ahb_waves_icarus/ahb_template.fst"
+[dumpfile_mtime] "Fri Oct 25 11:30:53 2024"
+[dumpfile_size] 991
+[savefile] "/Users/aignacio/projects/cocotbext-waves/waveform_template.gtkw"
+[timestart] 0
+[size] 1896 1033
+[pos] 2663 1358
+*-15.777963 -1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+[sst_width] 253
+[signals_width] 128
+[sst_expanded] 1
+[sst_vpaned_height] 310
+@29
+ahb_template.hresetn
+@28
+ahb_template.hclk
+@200
+-
+@22
+ahb_template.haddr[31:0]
+@28
+ahb_template.hsel
+ahb_template.hwrite
+ahb_template.hburst[2:0]
+ahb_template.hready_in
+ahb_template.hsize[2:0]
+ahb_template.htrans[1:0]
+@22
+ahb_template.hwdata[31:0]
+@200
+-
+@28
+ahb_template.hready
+ahb_template.hresp
+@c00022
+ahb_template.hrdata[31:0]
+@28
+(0)ahb_template.hrdata[31:0]
+(1)ahb_template.hrdata[31:0]
+(2)ahb_template.hrdata[31:0]
+(3)ahb_template.hrdata[31:0]
+(4)ahb_template.hrdata[31:0]
+(5)ahb_template.hrdata[31:0]
+(6)ahb_template.hrdata[31:0]
+(7)ahb_template.hrdata[31:0]
+(8)ahb_template.hrdata[31:0]
+(9)ahb_template.hrdata[31:0]
+(10)ahb_template.hrdata[31:0]
+(11)ahb_template.hrdata[31:0]
+(12)ahb_template.hrdata[31:0]
+(13)ahb_template.hrdata[31:0]
+(14)ahb_template.hrdata[31:0]
+(15)ahb_template.hrdata[31:0]
+(16)ahb_template.hrdata[31:0]
+(17)ahb_template.hrdata[31:0]
+(18)ahb_template.hrdata[31:0]
+(19)ahb_template.hrdata[31:0]
+(20)ahb_template.hrdata[31:0]
+(21)ahb_template.hrdata[31:0]
+(22)ahb_template.hrdata[31:0]
+(23)ahb_template.hrdata[31:0]
+(24)ahb_template.hrdata[31:0]
+(25)ahb_template.hrdata[31:0]
+(26)ahb_template.hrdata[31:0]
+(27)ahb_template.hrdata[31:0]
+(28)ahb_template.hrdata[31:0]
+(29)ahb_template.hrdata[31:0]
+(30)ahb_template.hrdata[31:0]
+(31)ahb_template.hrdata[31:0]
+@1401200
+-group_end
+[pattern_trace] 1
+[pattern_trace] 0
