@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File              : test_gen_ahb_waves_trigger.py
+# File              : test_gen_ahb_waves_ram.py
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 25.10.2024
@@ -12,7 +12,7 @@ import random
 from const import cfg
 from cocotb.triggers import ClockCycles
 from cocotb.clock import Clock
-from cocotbext.ahb import AHBBus, AHBMaster, AHBSlave
+from cocotbext.ahb import AHBBus, AHBMaster, AHBLiteSlaveRAM
 from cocotb.runner import get_runner
 from cocotbext.waves import waveform
 from cocotb.regression import TestFactory
@@ -42,8 +42,9 @@ async def setup_dut(dut, cycles):
 @cocotb.test()
 async def run_test(dut):
     N = 2
+    mem_size_kib = 4
 
-    waves = waveform(clk=dut.hclk, name="ahb_test", hscale=3, debug=True)
+    waves = waveform(clk=dut.hclk, name="ahb_test_sram")
     waves.add_signal(
         [
             dut.hsel,
@@ -59,31 +60,38 @@ async def run_test(dut):
             dut.hresp,
         ]
     )
-    waves.add_trigger(dut.hresetn, 1)
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
+    ahb_lite_sram = AHBLiteSlaveRAM(
+        AHBBus.from_entity(dut),
+        dut.hclk,
+        dut.hresetn,
+        mem_size=mem_size_kib * 1024,
+    )
     ahb_master = AHBMaster(AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z")
-    ahb_slave = AHBSlave(AHBBus.from_entity(dut), dut.hclk, dut.hresetn)
 
-    type(ahb_slave)
+    # Below is only required bc of flake8 - non-used rule
+    type(ahb_lite_sram)
 
-    address = [rnd_val(32) for _ in range(N)]
+    address = [(rnd_val(10) & 0xffff_ffffc) for _ in range(N)]
     value = [rnd_val(32) for _ in range(N)]
     size = [random.choice([1, 2, 4]) for _ in range(N)]
 
-    resp = await ahb_master.write(address, value, size, verbose=True)
-    resp = await ahb_master.read(address, size, verbose=True)
+    pip_mode = True
+    resp = await ahb_master.write(address, value, size, pip=pip_mode)
+    resp = await ahb_master.read(address, size, pip=pip_mode)
+    
     waves.save()
     type(resp)
     del waves
 
 
-def test_gen_ahb_waves_trigger():
+def test_gen_ahb_waves_ram():
     """
     Test generating waveforms in AHB protocol
 
-    Test ID: 2
+    Test ID: 3
     """
     test_name = os.path.splitext(os.path.basename(__file__))[0]
 
