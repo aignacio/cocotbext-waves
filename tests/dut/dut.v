@@ -20,6 +20,7 @@ module ahb_template #(
   // From slave to interconnect/master 
   inout   [(DATA_WIDTH-1):0]  hrdata,
   inout                       hready,
-  inout                       hresp
+  inout                       hresp,
+  inout                       test_nclk
 );
 endmodule

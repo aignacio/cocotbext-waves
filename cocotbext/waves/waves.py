@@ -17,6 +17,26 @@ from cocotb.handle import SimHandleBase
 from cocotb.triggers import RisingEdge, FallingEdge
 
 
+class signal_data:
+    def __init__(
+        self,
+        name,
+        handle,
+        is_clock,
+        is_posedge_clock,
+        color_data=None,
+        previous_val=None,
+        clock_period=1,
+    ) -> None:
+        self.name = name
+        self.handle = handle
+        self.color_data = color_data
+        self.is_clock = is_clock
+        self.is_posedge_clock = is_posedge_clock
+        self.previous_val = previous_val
+        self.clock_period = clock_period
+
+
 class waveform:
     def __init__(
         self,
@@ -26,7 +46,7 @@ class waveform:
         is_posedge: bool = True,
         debug: bool = False,
     ) -> None:
-        self.handles = []  # Stores [handle, last_value, color]
+        self.handles = []  # List to store [signal_data] obj
         self.waves = {}
         self.waves["signal"] = []
         self.trigger = {"trigger": None, "value": 0}
@@ -41,7 +61,7 @@ class waveform:
         self.name = name
         self.color_idx = 3  # Start color for multi-bit signal
 
-        self.waves["signal"].append({"name": clk._name, "wave": ""})
+        self.add_signal(clk, color=None, is_clock=True, is_posedge_clock=is_posedge)
         self.mon = cocotb.start_soon(self._monitor())
 
         self.log = logging.getLogger(f"cocotb.waves.{name}")
@@ -55,7 +75,14 @@ class waveform:
     def add_trigger(self, handle, val):
         self.trigger = {"trigger": handle, "value": val}
 
-    def add_signal(self, sig):
+    def add_signal(
+        self,
+        sig,
+        color=None,
+        is_clock: bool = False,
+        is_posedge_clock: bool = True,
+        clock_period=1,
+    ):
         if not isinstance(sig, list):
             sig = [sig]
 
@@ -67,7 +94,15 @@ class waveform:
                         "wave": "",
                     }
                 )
-                self.handles.append([signal, None, None])
+                self.handles.append(
+                    signal_data(
+                        name=signal._name,
+                        handle=signal,
+                        is_clock=is_clock,
+                        is_posedge_clock=is_posedge_clock,
+                        clock_period=clock_period,
+                    )
+                )
             else:
                 self.waves["signal"].append(
                     {
@@ -77,12 +112,28 @@ class waveform:
                     }
                 )
 
-                if self.color_idx == 9:
-                    color = 3
+                if color is None:
+                    # Automatically assigns a color
+                    if self.color_idx == 9:
+                        color_tmp = 3
+                    else:
+                        color_tmp = self.color_idx
+                        self.color_idx = color_tmp + 1
                 else:
-                    color = self.color_idx
-                    self.color_idx = color + 1
-                self.handles.append([signal, None, str(color)])
+                    # Take user's input
+                    color_tmp = color
+
+                # Append to the list that will be used later
+                self.handles.append(
+                    signal_data(
+                        name=signal._name,
+                        handle=signal,
+                        color_data=str(color_tmp),
+                        is_clock=is_clock,
+                        is_posedge_clock=is_posedge_clock,
+                        clock_period=clock_period,
+                    )
+                )
 
     async def _monitor(self):
         while True:
@@ -100,57 +151,61 @@ class waveform:
                 self._add_signals()
 
     def _add_signals(self):
-        self._append_wave_dot(None, self.clk, self.clk._name, True)
-        for index, handle in enumerate(self.handles):
-            self._append_wave_dot(index, handle, handle[0]._name, False)
+        for index, signal in enumerate(self.handles):
+            self._append_wave_dot(index, signal)
 
-    def _append_wave_dot(self, index, handle, name, is_clock):
-        if is_clock is True:
+    def _append_wave_dot(self, index, signal):
+        if signal.is_clock is True:
             for entry in self.waves["signal"]:
-                if entry["name"] == name:
-                    if handle.value.is_resolvable is not True:
-                        if "z" in handle.value:
+                if entry["name"] == signal.name:
+                    if signal.handle.value.is_resolvable is not True:
+                        if "z" in signal.handle.value:
                             entry["wave"] += "z"
                         else:
                             entry["wave"] += "x"
                     else:
                         if entry["wave"] == "":
-                            entry["wave"] += "P" if self.is_posedge else "N"
+                            entry["wave"] += "P" if signal.is_posedge_clock else "N"
+                            entry["period"] = signal.clock_period
                         else:
                             entry["wave"] += "."
         else:
             for entry in self.waves["signal"]:
-                if entry["name"] == name:
-                    if handle[1] is None:
-                        self.handles[index][1] = copy.deepcopy(handle[0].value)
+                if entry["name"] == signal.name:
+                    if signal.previous_val is None:
+                        self.handles[index].previous_val = copy.deepcopy(
+                            signal.handle.value
+                        )
 
-                        if handle[0].value.is_resolvable is not True:
-                            if "z" in handle[0].value:
+                        if signal.handle.value.is_resolvable is not True:
+                            if "z" in signal.handle.value:
                                 entry["wave"] += "z"
                             else:
                                 entry["wave"] += "x"
                         else:
-                            if handle[0].__len__() > 1:
-                                entry["data"] += str(hex(handle[0].value)) + " "
-                                entry["wave"] += self.handles[index][2]
+                            if signal.handle.__len__() > 1:
+                                entry["data"] += str(hex(signal.handle.value)) + " "
+                                entry["wave"] += signal.color_data
                             else:
-                                entry["wave"] += str(handle[0].value)
-                    elif handle[0].value == handle[1]:
+                                entry["wave"] += str(signal.handle.value)
+                    elif signal.handle.value == signal.previous_val:
                         entry["wave"] += "."
                     else:
-                        self.handles[index][1] = copy.deepcopy(handle[0].value)
+                        self.handles[index].previous_val = copy.deepcopy(
+                            signal.handle.value
+                        )
 
-                        if handle[0].value.is_resolvable is not True:
-                            if "z" in handle[0].value:
+                        if signal.handle.value.is_resolvable is not True:
+                            if "z" in signal.handle.value:
                                 entry["wave"] += "z"
                             else:
                                 entry["wave"] += "x"
                         else:
-                            if handle[0].__len__() > 1:
-                                entry["wave"] += self.handles[index][2]
-                                entry["data"] += str(hex(handle[0].value)) + " "
+                            if signal.handle.__len__() > 1:
+                                entry["wave"] += signal.color_data
+                                entry["data"] += str(hex(signal.handle.value)) + " "
                             else:
-                                entry["wave"] += str(handle[0].value)
+                                entry["wave"] += str(signal.handle.value)
 
     def set_head(self, text, tick, every):
         self.head = {"text": text, "tick": tick, "every": every}
@@ -161,11 +216,11 @@ class waveform:
     def save(self):
         self.mon.kill()
         # Format each name entry
-        for handle in self.handles:
+        for signal in self.handles:
             for entry in self.waves["signal"]:
-                if entry["name"] == handle[0]._name:
-                    if handle[0].__len__() > 1:
-                        entry["name"] += "[" + str(handle[0].__len__() - 1) + ":0]"
+                if entry["name"] == signal.handle._name:
+                    if signal.handle.__len__() > 1:
+                        entry["name"] += "[" + str(signal.handle.__len__() - 1) + ":0]"
 
         self.waves["config"] = {"hscale": self.hscale}
         self.waves["head"] = self.head
@@ -176,3 +231,12 @@ class waveform:
             print(json.dumps(self.waves))
         svg = wavedrom.render(json.dumps(self.waves))
         svg.saveas(self.name + ".svg")
+
+    def save_txt(self):
+        try:
+            with open(self.name + ".txt", "w") as file:
+                json.dump(self.waves, file, indent=4)  # indent for better readability
+            if self.debug:
+                print(f"Wavedrom diagram written into {self.name}.txt")
+        except Exception as e:
+            print(f"An error occurred: {e} while trying to write wavedrom diagram")

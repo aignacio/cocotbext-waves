@@ -33,6 +33,7 @@ def rnd_val(bit: int = 0, zero: bool = True):
 
 
 async def setup_dut(dut, cycles):
+    cocotb.start_soon(Clock(dut.test_nclk, *cfg.CLK_200MHz).start())
     cocotb.start_soon(Clock(dut.hclk, *cfg.CLK_100MHz).start())
     dut.hresetn.value = 0
     await ClockCycles(dut.hclk, cycles)
@@ -59,6 +60,9 @@ async def run_test(dut):
             dut.hresp,
         ]
     )
+    waves.add_signal(
+        dut.test_nclk, is_clock=True, is_posedge_clock=False, clock_period=0.50
+    )
     waves.add_trigger(dut.hresetn, 1)
 
     await setup_dut(dut, cfg.RST_CYCLES)
@@ -75,6 +79,7 @@ async def run_test(dut):
     resp = await ahb_master.write(address, value, size, verbose=True)
     resp = await ahb_master.read(address, size, verbose=True)
     waves.save()
+    waves.save_txt()
     type(resp)
     del waves
 

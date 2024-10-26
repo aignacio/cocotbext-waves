@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 08.10.2023
-# Last Modified Date: 25.10.2024
+# Last Modified Date: 26.10.2024
 import os
 import glob
 
@@ -12,6 +12,7 @@ import glob
 class cfg:
     RST_CYCLES = 3
     CLK_100MHz = (10, "ns")
+    CLK_200MHz = (5, "ns")
 
     TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
     RTL_DIR = os.path.join(TESTS_DIR, "dut")

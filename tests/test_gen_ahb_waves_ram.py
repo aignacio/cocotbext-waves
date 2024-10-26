@@ -74,14 +74,14 @@ async def run_test(dut):
     # Below is only required bc of flake8 - non-used rule
     type(ahb_lite_sram)
 
-    address = [(rnd_val(10) & 0xffff_ffffc) for _ in range(N)]
+    address = [(rnd_val(10) & 0xFFFF_FFFFC) for _ in range(N)]
     value = [rnd_val(32) for _ in range(N)]
     size = [random.choice([1, 2, 4]) for _ in range(N)]
 
     pip_mode = True
     resp = await ahb_master.write(address, value, size, pip=pip_mode)
     resp = await ahb_master.read(address, size, pip=pip_mode)
-    
+
     waves.save()
     type(resp)
     del waves
