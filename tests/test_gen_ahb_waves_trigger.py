@@ -43,9 +43,7 @@ async def setup_dut(dut, cycles):
 async def run_test(dut):
     N = 2
 
-    waves = waveform(
-        clk=dut.hclk, name="ahb_test", hscale=3, debug=True
-    )
+    waves = waveform(clk=dut.hclk, name="ahb_test", hscale=3, debug=True)
     waves.add_signal(
         [
             dut.hsel,
@@ -108,4 +106,3 @@ def test_gen_ahb_waves():
         waves=True,
         test_dir=SIM_BUILD,
     )
-
