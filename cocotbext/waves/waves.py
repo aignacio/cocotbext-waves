@@ -27,6 +27,7 @@ class signal_data:
         color_data=None,
         previous_val=None,
         clock_period=1,
+        group=None,
     ) -> None:
         self.name = name
         self.handle = handle
@@ -35,6 +36,7 @@ class signal_data:
         self.is_posedge_clock = is_posedge_clock
         self.previous_val = previous_val
         self.clock_period = clock_period
+        self.group = group
 
 
 class waveform:
@@ -82,18 +84,22 @@ class waveform:
         is_clock: bool = False,
         is_posedge_clock: bool = True,
         clock_period=1,
+        group=None,
     ):
         if not isinstance(sig, list):
             sig = [sig]
 
+        sig_list = []
+
         for signal in sig:
             if signal.__len__() == 1:
-                self.waves["signal"].append(
+                sig_list.append(
                     {
                         "name": signal._name,
                         "wave": "",
                     }
                 )
+
                 self.handles.append(
                     signal_data(
                         name=signal._name,
@@ -101,10 +107,11 @@ class waveform:
                         is_clock=is_clock,
                         is_posedge_clock=is_posedge_clock,
                         clock_period=clock_period,
+                        group=group,
                     )
                 )
             else:
-                self.waves["signal"].append(
+                sig_list.append(
                     {
                         "name": signal._name,
                         "wave": "",
@@ -132,8 +139,15 @@ class waveform:
                         is_clock=is_clock,
                         is_posedge_clock=is_posedge_clock,
                         clock_period=clock_period,
+                        group=group,
                     )
                 )
+
+        if group is not None:
+            self.waves["signal"].append([group] + sig_list)
+        else:
+            for item in sig_list:
+                self.waves["signal"].append(item)
 
     async def _monitor(self):
         while True:
@@ -157,7 +171,7 @@ class waveform:
     def _append_wave_dot(self, index, signal):
         if signal.is_clock is True:
             for entry in self.waves["signal"]:
-                if entry["name"] == signal.name:
+                if isinstance(entry, dict) and entry["name"] == signal.name:
                     if signal.handle.value.is_resolvable is not True:
                         if "z" in signal.handle.value:
                             entry["wave"] += "z"
@@ -169,43 +183,107 @@ class waveform:
                             entry["period"] = signal.clock_period
                         else:
                             entry["wave"] += "."
+                elif isinstance(entry, list):
+                    for subentry in entry:
+                        if (
+                            isinstance(subentry, dict)
+                            and subentry.get("name") == signal.name
+                        ):
+                            if signal.handle.value.is_resolvable is not True:
+                                if "z" in signal.handle.value:
+                                    subentry["wave"] += "z"
+                                else:
+                                    subentry["wave"] += "x"
+                            else:
+                                if subentry["wave"] == "":
+                                    subentry["wave"] += (
+                                        "P" if signal.is_posedge_clock else "N"
+                                    )
+                                    subentry["period"] = signal.clock_period
+                                else:
+                                    subentry["wave"] += "."
         else:
             for entry in self.waves["signal"]:
-                if entry["name"] == signal.name:
-                    if signal.previous_val is None:
-                        self.handles[index].previous_val = copy.deepcopy(
-                            signal.handle.value
-                        )
+                if isinstance(entry, dict) and entry["name"] == signal.name:
+                    if entry["name"] == signal.name:
+                        if signal.previous_val is None:
+                            self.handles[index].previous_val = copy.deepcopy(
+                                signal.handle.value
+                            )
 
-                        if signal.handle.value.is_resolvable is not True:
-                            if "z" in signal.handle.value:
-                                entry["wave"] += "z"
+                            if signal.handle.value.is_resolvable is not True:
+                                if "z" in signal.handle.value:
+                                    entry["wave"] += "z"
+                                else:
+                                    entry["wave"] += "x"
                             else:
-                                entry["wave"] += "x"
+                                if signal.handle.__len__() > 1:
+                                    entry["data"] += str(hex(signal.handle.value)) + " "
+                                    entry["wave"] += signal.color_data
+                                else:
+                                    entry["wave"] += str(signal.handle.value)
+                        elif signal.handle.value == signal.previous_val:
+                            entry["wave"] += "."
                         else:
-                            if signal.handle.__len__() > 1:
-                                entry["data"] += str(hex(signal.handle.value)) + " "
-                                entry["wave"] += signal.color_data
-                            else:
-                                entry["wave"] += str(signal.handle.value)
-                    elif signal.handle.value == signal.previous_val:
-                        entry["wave"] += "."
-                    else:
-                        self.handles[index].previous_val = copy.deepcopy(
-                            signal.handle.value
-                        )
+                            self.handles[index].previous_val = copy.deepcopy(
+                                signal.handle.value
+                            )
 
-                        if signal.handle.value.is_resolvable is not True:
-                            if "z" in signal.handle.value:
-                                entry["wave"] += "z"
+                            if signal.handle.value.is_resolvable is not True:
+                                if "z" in signal.handle.value:
+                                    entry["wave"] += "z"
+                                else:
+                                    entry["wave"] += "x"
                             else:
-                                entry["wave"] += "x"
-                        else:
-                            if signal.handle.__len__() > 1:
-                                entry["wave"] += signal.color_data
-                                entry["data"] += str(hex(signal.handle.value)) + " "
+                                if signal.handle.__len__() > 1:
+                                    entry["wave"] += signal.color_data
+                                    entry["data"] += str(hex(signal.handle.value)) + " "
+                                else:
+                                    entry["wave"] += str(signal.handle.value)
+                elif isinstance(entry, list):
+                    for subentry in entry:
+                        if (
+                            isinstance(subentry, dict)
+                            and subentry.get("name") == signal.name
+                        ):
+                            if signal.previous_val is None:
+                                self.handles[index].previous_val = copy.deepcopy(
+                                    signal.handle.value
+                                )
+
+                                if signal.handle.value.is_resolvable is not True:
+                                    if "z" in signal.handle.value:
+                                        subentry["wave"] += "z"
+                                    else:
+                                        subentry["wave"] += "x"
+                                else:
+                                    if signal.handle.__len__() > 1:
+                                        subentry["data"] += (
+                                            str(hex(signal.handle.value)) + " "
+                                        )
+                                        subentry["wave"] += signal.color_data
+                                    else:
+                                        subentry["wave"] += str(signal.handle.value)
+                            elif signal.handle.value == signal.previous_val:
+                                subentry["wave"] += "."
                             else:
-                                entry["wave"] += str(signal.handle.value)
+                                self.handles[index].previous_val = copy.deepcopy(
+                                    signal.handle.value
+                                )
+
+                                if signal.handle.value.is_resolvable is not True:
+                                    if "z" in signal.handle.value:
+                                        subentry["wave"] += "z"
+                                    else:
+                                        subentry["wave"] += "x"
+                                else:
+                                    if signal.handle.__len__() > 1:
+                                        subentry["wave"] += signal.color_data
+                                        subentry["data"] += (
+                                            str(hex(signal.handle.value)) + " "
+                                        )
+                                    else:
+                                        subentry["wave"] += str(signal.handle.value)
 
     def set_head(self, text, tick, every):
         self.head = {"text": text, "tick": tick, "every": every}
@@ -213,15 +291,27 @@ class waveform:
     def set_foot(self, text, tick, every):
         self.foot = {"text": text, "tick": tick, "every": every}
 
-    def save(self):
-        self.mon.kill()
-        # Format each name entry
+    def _incl_width(self):
+        # Format each multi-bit name entry to include width
         for signal in self.handles:
             for entry in self.waves["signal"]:
-                if entry["name"] == signal.handle._name:
+                if isinstance(entry, dict) and entry["name"] == signal.name:
                     if signal.handle.__len__() > 1:
                         entry["name"] += "[" + str(signal.handle.__len__() - 1) + ":0]"
+                elif isinstance(entry, list):
+                    for subentry in entry:
+                        if (
+                            isinstance(subentry, dict)
+                            and subentry.get("name") == signal.name
+                        ):
+                            if signal.handle.__len__() > 1:
+                                subentry["name"] += (
+                                    "[" + str(signal.handle.__len__() - 1) + ":0]"
+                                )
 
+    def save(self):
+        self.mon.kill()
+        self._incl_width()
         self.waves["config"] = {"hscale": self.hscale}
         self.waves["head"] = self.head
         self.waves["foot"] = self.foot

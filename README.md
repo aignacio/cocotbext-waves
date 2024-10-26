@@ -40,15 +40,22 @@ waves.add_signal(
         dut.hwdata,
         dut.hwrite,
         dut.hready_in,
+    ],
+    group="MOSI",
+)
+waves.add_signal(
+    [
         dut.hrdata,
         dut.hready,
         dut.hresp,
-    ]
+    ],
+    group="MISO",
 )
 ...
 <Running sim, issuing txns>
 ...
 waves.save()
+waves.save_txt()
 ```
 
 **Output:**

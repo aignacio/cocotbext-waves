@@ -55,10 +55,16 @@ async def run_test(dut):
             dut.hwdata,
             dut.hwrite,
             dut.hready_in,
+        ],
+        group="MOSI",
+    )
+    waves.add_signal(
+        [
             dut.hrdata,
             dut.hready,
             dut.hresp,
-        ]
+        ],
+        group="MISO",
     )
 
     await setup_dut(dut, cfg.RST_CYCLES)
@@ -83,6 +89,7 @@ async def run_test(dut):
     resp = await ahb_master.read(address, size, pip=pip_mode)
 
     waves.save()
+    waves.save_txt()
     type(resp)
     del waves
 
