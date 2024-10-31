@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 25.10.2024
-# Last Modified Date: 29.10.2024
+# Last Modified Date: 31.10.2024
 import cocotb
 import wavedrom
 import json
@@ -320,7 +320,15 @@ class waveform:
             self.waves["head"] = self.head
             self.waves["foot"] = self.foot
 
-    def save(self):
+    def __str__(self):
+        return str(json.dumps(self.waves))
+
+    def stop(self):
+        self._close()
+        if self.debug:
+            print("[Waves - Debug] Stopping sims")
+
+    def save_svg(self):
         self._close()
         if self.debug:
             print("[Waves - Debug] Printing JSON Wavedrom")

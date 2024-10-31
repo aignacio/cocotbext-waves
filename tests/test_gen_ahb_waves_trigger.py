@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 25.10.2024
-# Last Modified Date: 26.10.2024
+# Last Modified Date: 31.10.2024
 import cocotb
 import os
 import random
@@ -79,7 +79,7 @@ async def run_test(dut):
     resp = await ahb_master.write(address, value, size, verbose=True)
     resp = await ahb_master.read(address, size, verbose=True)
     waves.save()
-    waves.save_txt()
+    waves.save_svg()
     type(resp)
     del waves
 
