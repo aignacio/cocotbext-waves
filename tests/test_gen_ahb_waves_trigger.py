@@ -78,7 +78,7 @@ async def run_test(dut):
 
     resp = await ahb_master.write(address, value, size, verbose=True)
     resp = await ahb_master.read(address, size, verbose=True)
-    waves.save()
+    waves.save_txt()
     waves.save_svg()
     type(resp)
     del waves
