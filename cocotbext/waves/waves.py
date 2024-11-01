@@ -47,6 +47,7 @@ class waveform:
         hscale: int = 2,
         is_posedge: bool = True,
         debug: bool = False,
+        start: bool = True,
     ) -> None:
         self.handles = []  # List to store [signal_data] obj
         self.waves = {}
@@ -74,6 +75,9 @@ class waveform:
             f"Copyright (c) {datetime.datetime.now().year} Anderson Ignacio da Silva"
         )
         self.log.info("https://github.com/aignacio/cocotbext-waves")
+
+        if start:
+            self.start()
 
     def add_trigger(self, handle, val):
         self.trigger = {"trigger": handle, "value": val}
@@ -154,6 +158,8 @@ class waveform:
         if self._start is False:
             self.mon = cocotb.start_soon(self._monitor())
             self._start = True
+            if self.debug:
+                print("[Waves - Debug] Starting sampling signals")
 
     async def _monitor(self):
         while True:

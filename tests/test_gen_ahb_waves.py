@@ -80,8 +80,6 @@ async def run_test(dut, bp_fn=None, pip_mode=False):
         ]
     )
 
-    waves.start()
-
     await setup_dut(dut, cfg.RST_CYCLES)
 
     ahb_master = AHBMaster(AHBBus.from_entity(dut), dut.hclk, dut.hresetn, def_val="Z")

@@ -67,8 +67,6 @@ async def run_test(dut):
         group="MISO",
     )
 
-    waves.start()
-
     await setup_dut(dut, cfg.RST_CYCLES)
 
     ahb_lite_sram = AHBLiteSlaveRAM(
