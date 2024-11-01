@@ -56,7 +56,7 @@ waves.start()
 ...
 <Running sim, issuing txns>
 ...
-waves.save()
+waves.save_svg()
 waves.save_txt()
 ```
 
