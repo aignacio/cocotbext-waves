@@ -51,6 +51,7 @@ waves.add_signal(
     ],
     group="MISO",
 )
+waves.start()
 ...
 <Running sim, issuing txns>
 ...

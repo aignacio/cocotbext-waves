@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 25.10.2024
-# Last Modified Date: 31.10.2024
+# Last Modified Date: 01.11.2024
 import cocotb
 import os
 import random
@@ -66,6 +66,8 @@ async def run_test(dut):
         ],
         group="MISO",
     )
+
+    waves.start()
 
     await setup_dut(dut, cfg.RST_CYCLES)
 

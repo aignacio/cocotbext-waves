@@ -4,7 +4,7 @@
 # License           : MIT license <Check LICENSE>
 # Author            : Anderson I. da Silva (aignacio) <anderson@aignacio.com>
 # Date              : 25.10.2024
-# Last Modified Date: 31.10.2024
+# Last Modified Date: 01.11.2024
 import cocotb
 import os
 import random
@@ -64,6 +64,8 @@ async def run_test(dut):
         dut.test_nclk, is_clock=True, is_posedge_clock=False, clock_period=0.50
     )
     waves.add_trigger(dut.hresetn, 1)
+
+    waves.start()
 
     await setup_dut(dut, cfg.RST_CYCLES)
 
